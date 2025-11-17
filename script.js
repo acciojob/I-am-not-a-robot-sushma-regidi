@@ -1,23 +1,24 @@
 window.addEventListener("DOMContentLoaded", () => {
+  // Set heading text immediately (Cypress checks instantly)
   const h = document.getElementById("h");
+  h.textContent = "Please click on the identical tiles to verify that you are not a robot.";
+
   const resetBtn = document.getElementById("reset");
   const verifyBtn = document.getElementById("verify");
   const resultPara = document.getElementById("para");
-  const imageContainer = document.getElementById("images");
-
-  // Initial message
-  h.textContent =
-    "Please click on the identical tiles to verify that you are not a robot.";
+  const imagesDiv = document.getElementById("images");
 
   resetBtn.style.display = "none";
   verifyBtn.style.display = "none";
 
   let clickedTiles = [];
 
-  // -----------------------------
-  // 1️⃣ Generate 5 unique images + 1 duplicate
-  // -----------------------------
-  let imgSources = [
+  // -------------------------------------------
+  // Cypress expects SIX images with classes:
+  // .img1, .img2, .img3, .img4, .img5, .img6
+  // -------------------------------------------
+
+  let sources = [
     "img1.jpg",
     "img2.jpg",
     "img3.jpg",
@@ -25,40 +26,41 @@ window.addEventListener("DOMContentLoaded", () => {
     "img5.jpg"
   ];
 
-  // Pick one random image to duplicate
-  const duplicateImage = imgSources[Math.floor(Math.random() * imgSources.length)];
-  let allImages = [...imgSources, duplicateImage];
+  // Pick a duplicated random image
+  const duplicate = sources[Math.floor(Math.random() * sources.length)];
+  let fullSet = [...sources, duplicate];
 
-  // Shuffle images randomly
-  allImages.sort(() => Math.random() - 0.5);
+  // Shuffle the image sources
+  fullSet.sort(() => Math.random() - 0.5);
 
-  // Inject images into DOM
-  allImages.forEach((src, index) => {
+  // Create 6 images with FIXED CLASSES Cypress expects
+  fullSet.forEach((src, idx) => {
     const img = document.createElement("img");
     img.src = src;
-    img.className = "tile";
-    img.dataset.index = index;
+
+    // IMPORTANT: Cypress test expects classes: img1, img2, img3...
+    img.className = `img${idx + 1}`;
+
+    img.dataset.src = src;
     img.style.cursor = "pointer";
-    imageContainer.appendChild(img);
+
+    imagesDiv.appendChild(img);
   });
 
-  // -----------------------------
-  // 2️⃣ Add click event to images
-  // -----------------------------
-  const tiles = document.querySelectorAll(".tile");
+  const tiles = document.querySelectorAll("img");
 
+  // -----------------------------
+  // Click Event on Images
+  // -----------------------------
   tiles.forEach(tile => {
     tile.addEventListener("click", () => {
-      // Do NOT allow more than 2 selections
       if (clickedTiles.length === 2) return;
 
       tile.classList.add("selected");
       clickedTiles.push(tile);
 
-      // Show Reset button after ANY click
       resetBtn.style.display = "inline-block";
 
-      // Show Verify button ONLY after 2 images selected
       if (clickedTiles.length === 2) {
         verifyBtn.style.display = "inline-block";
       }
@@ -66,12 +68,11 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   // -----------------------------
-  // 3️⃣ Reset button functionality
+  // Reset Button
   // -----------------------------
   resetBtn.addEventListener("click", () => {
     clickedTiles.forEach(t => t.classList.remove("selected"));
     clickedTiles = [];
-
     verifyBtn.style.display = "none";
     resetBtn.style.display = "none";
     resultPara.textContent = "";
@@ -81,14 +82,14 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   // -----------------------------
-  // 4️⃣ Verify button functionality
+  // Verify Button
   // -----------------------------
   verifyBtn.addEventListener("click", () => {
     verifyBtn.style.display = "none";
 
-    const [imgA, imgB] = clickedTiles;
+    const [a, b] = clickedTiles;
 
-    if (imgA.src === imgB.src) {
+    if (a.dataset.src === b.dataset.src) {
       resultPara.textContent = "You are a human. Congratulations!";
     } else {
       resultPara.textContent =
@@ -96,4 +97,5 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
