@@ -1,85 +1,99 @@
-//your code here
-<script>
-  const imageContainer = document.getElementById("image-container");
+window.addEventListener("DOMContentLoaded", () => {
+  const h = document.getElementById("h");
   const resetBtn = document.getElementById("reset");
   const verifyBtn = document.getElementById("verify");
-  const para = document.getElementById("para");
+  const resultPara = document.getElementById("para");
+  const imageContainer = document.getElementById("images");
 
-  // 5 unique images
-  const images = [
-    "https://via.placeholder.com/150/ff0000",
-    "https://via.placeholder.com/150/00ff00",
-    "https://via.placeholder.com/150/0000ff",
-    "https://via.placeholder.com/150/ffff00",
-    "https://via.placeholder.com/150/00ffff"
+  // Initial message
+  h.textContent =
+    "Please click on the identical tiles to verify that you are not a robot.";
+
+  resetBtn.style.display = "none";
+  verifyBtn.style.display = "none";
+
+  let clickedTiles = [];
+
+  // -----------------------------
+  // 1️⃣ Generate 5 unique images + 1 duplicate
+  // -----------------------------
+  let imgSources = [
+    "img1.jpg",
+    "img2.jpg",
+    "img3.jpg",
+    "img4.jpg",
+    "img5.jpg"
   ];
 
-  let clickedImages = [];
+  // Pick one random image to duplicate
+  const duplicateImage = imgSources[Math.floor(Math.random() * imgSources.length)];
+  let allImages = [...imgSources, duplicateImage];
 
-  // Function to load images and assign .img1, .img2, etc.
-  function loadImages() {
-    imageContainer.innerHTML = "";
-    para.textContent = "";
-    resetBtn.style.display = "none";
-    verifyBtn.style.display = "none";
-    clickedImages = [];
+  // Shuffle images randomly
+  allImages.sort(() => Math.random() - 0.5);
 
-    // Pick random image to duplicate
-    const duplicateIndex = Math.floor(Math.random() * images.length);
-    const duplicateImage = images[duplicateIndex];
+  // Inject images into DOM
+  allImages.forEach((src, index) => {
+    const img = document.createElement("img");
+    img.src = src;
+    img.className = "tile";
+    img.dataset.index = index;
+    img.style.cursor = "pointer";
+    imageContainer.appendChild(img);
+  });
 
-    // Create image set with duplicate
-    const imageSet = [...images, duplicateImage];
+  // -----------------------------
+  // 2️⃣ Add click event to images
+  // -----------------------------
+  const tiles = document.querySelectorAll(".tile");
 
-    // Shuffle them randomly
-    imageSet.sort(() => Math.random() - 0.5);
+  tiles.forEach(tile => {
+    tile.addEventListener("click", () => {
+      // Do NOT allow more than 2 selections
+      if (clickedTiles.length === 2) return;
 
-    // Render with class names
-    imageSet.forEach((src, index) => {
-      const img = document.createElement("img");
-      img.src = src;
-      img.dataset.src = src;
-      img.classList.add(`img${index + 1}`); // 👈 assign .img1, .img2, etc.
-      img.addEventListener("click", () => selectImage(img));
-      imageContainer.appendChild(img);
+      tile.classList.add("selected");
+      clickedTiles.push(tile);
+
+      // Show Reset button after ANY click
+      resetBtn.style.display = "inline-block";
+
+      // Show Verify button ONLY after 2 images selected
+      if (clickedTiles.length === 2) {
+        verifyBtn.style.display = "inline-block";
+      }
     });
-  }
+  });
 
-  // Handle image selection
-  function selectImage(img) {
-    if (clickedImages.includes(img)) return;
-    img.classList.add("selected");
-    clickedImages.push(img);
-    resetBtn.style.display = "inline-block";
+  // -----------------------------
+  // 3️⃣ Reset button functionality
+  // -----------------------------
+  resetBtn.addEventListener("click", () => {
+    clickedTiles.forEach(t => t.classList.remove("selected"));
+    clickedTiles = [];
 
-    if (clickedImages.length === 2) {
-      verifyBtn.style.display = "inline-block";
-    } else {
-      verifyBtn.style.display = "none";
-    }
+    verifyBtn.style.display = "none";
+    resetBtn.style.display = "none";
+    resultPara.textContent = "";
 
-    if (clickedImages.length > 2) {
-      clickedImages.forEach(i => i.classList.remove("selected"));
-      clickedImages = [];
-      verifyBtn.style.display = "none";
-    }
-  }
+    h.textContent =
+      "Please click on the identical tiles to verify that you are not a robot.";
+  });
 
-  // Reset
-  resetBtn.addEventListener("click", loadImages);
-
-  // Verify
+  // -----------------------------
+  // 4️⃣ Verify button functionality
+  // -----------------------------
   verifyBtn.addEventListener("click", () => {
     verifyBtn.style.display = "none";
-    const [img1, img2] = clickedImages;
-    if (img1.dataset.src === img2.dataset.src) {
-      para.textContent = "You are a human. Congratulations!";
+
+    const [imgA, imgB] = clickedTiles;
+
+    if (imgA.src === imgB.src) {
+      resultPara.textContent = "You are a human. Congratulations!";
     } else {
-      para.textContent =
+      resultPara.textContent =
         "We can't verify you as a human. You selected the non-identical tiles.";
     }
   });
+});
 
-  // Load on startup
-  loadImages();
-</script>
