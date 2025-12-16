@@ -1,101 +1,81 @@
-window.addEventListener("DOMContentLoaded", () => {
-  // Set heading text immediately (Cypress checks instantly)
-  const h = document.getElementById("h");
-  h.textContent = "Please click on the identical tiles to verify that you are not a robot.";
+let images = document.querySelectorAll(".img");
+let resetBtn = document.getElementById("reset");
+let verifyBtn = document.getElementById("verify");
+let heading = document.getElementById("h");
+let result = document.getElementById("para");
 
-  const resetBtn = document.getElementById("reset");
-  const verifyBtn = document.getElementById("verify");
-  const resultPara = document.getElementById("para");
-  const imagesDiv = document.getElementById("images");
+let clicked = [];
 
-  resetBtn.style.display = "none";
-  verifyBtn.style.display = "none";
+// Initial state
+resetBtn.style.display = "none";
+verifyBtn.style.display = "none";
+result.innerText = "";
 
-  let clickedTiles = [];
+// Image sources (5 unique + 1 duplicate)
+let imgArr = [
+  "img1.jpg",
+  "img2.jpg",
+  "img3.jpg",
+  "img4.jpg",
+  "img5.jpg"
+];
 
-  // -------------------------------------------
-  // Cypress expects SIX images with classes:
-  // .img1, .img2, .img3, .img4, .img5, .img6
-  // -------------------------------------------
+// Pick a random image to duplicate
+let duplicate = imgArr[Math.floor(Math.random() * imgArr.length)];
+imgArr.push(duplicate);
 
-  let sources = [
-    "img1.jpg",
-    "img2.jpg",
-    "img3.jpg",
-    "img4.jpg",
-    "img5.jpg"
-  ];
+// Shuffle images
+imgArr.sort(() => Math.random() - 0.5);
 
-  // Pick a duplicated random image
-  const duplicate = sources[Math.floor(Math.random() * sources.length)];
-  let fullSet = [...sources, duplicate];
+// Assign images
+images.forEach((img, i) => {
+  img.src = imgArr[i];
+  img.setAttribute("data-id", imgArr[i]);
+});
 
-  // Shuffle the image sources
-  fullSet.sort(() => Math.random() - 0.5);
+// Click handler
+images.forEach(img => {
+  img.addEventListener("click", () => {
+    if (clicked.includes(img) || clicked.length === 2) return;
 
-  // Create 6 images with FIXED CLASSES Cypress expects
-  fullSet.forEach((src, idx) => {
-    const img = document.createElement("img");
-    img.src = src;
+    img.classList.add("selected");
+    clicked.push(img);
 
-    // IMPORTANT: Cypress test expects classes: img1, img2, img3...
-    img.className = `img${idx + 1}`;
+    resetBtn.style.display = "inline";
 
-    img.dataset.src = src;
-    img.style.cursor = "pointer";
-
-    imagesDiv.appendChild(img);
-  });
-
-  const tiles = document.querySelectorAll("img");
-
-  // -----------------------------
-  // Click Event on Images
-  // -----------------------------
-  tiles.forEach(tile => {
-    tile.addEventListener("click", () => {
-      if (clickedTiles.length === 2) return;
-
-      tile.classList.add("selected");
-      clickedTiles.push(tile);
-
-      resetBtn.style.display = "inline-block";
-
-      if (clickedTiles.length === 2) {
-        verifyBtn.style.display = "inline-block";
-      }
-    });
-  });
-
-  // -----------------------------
-  // Reset Button
-  // -----------------------------
-  resetBtn.addEventListener("click", () => {
-    clickedTiles.forEach(t => t.classList.remove("selected"));
-    clickedTiles = [];
-    verifyBtn.style.display = "none";
-    resetBtn.style.display = "none";
-    resultPara.textContent = "";
-
-    h.textContent =
-      "Please click on the identical tiles to verify that you are not a robot.";
-  });
-
-  // -----------------------------
-  // Verify Button
-  // -----------------------------
-  verifyBtn.addEventListener("click", () => {
-    verifyBtn.style.display = "none";
-
-    const [a, b] = clickedTiles;
-
-    if (a.dataset.src === b.dataset.src) {
-      resultPara.textContent = "You are a human. Congratulations!";
-    } else {
-      resultPara.textContent =
-        "We can't verify you as a human. You selected the non-identical tiles.";
+    if (clicked.length === 2) {
+      verifyBtn.style.display = "inline";
     }
   });
 });
+
+// Reset button
+resetBtn.addEventListener("click", () => {
+  clicked = [];
+  result.innerText = "";
+  verifyBtn.style.display = "none";
+  resetBtn.style.display = "none";
+
+  images.forEach(img => img.classList.remove("selected"));
+
+  heading.innerText =
+    "Please click on the identical tiles to verify that you are not a robot.";
+});
+
+// Verify button
+verifyBtn.addEventListener("click", () => {
+  verifyBtn.style.display = "none";
+
+  let img1 = clicked[0].getAttribute("data-id");
+  let img2 = clicked[1].getAttribute("data-id");
+
+  if (img1 === img2) {
+    result.innerText = "You are a human. Congratulations!";
+  } else {
+    result.innerText =
+      "We can't verify you as a human. You selected the non-identical tiles.";
+  }
+});
+
 
 
