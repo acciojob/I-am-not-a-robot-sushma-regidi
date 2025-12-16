@@ -24,17 +24,16 @@
     const resetBtn = document.getElementById('reset');
     const verifyBtn = document.getElementById('verify');
     const messagePara = document.getElementById('para');
-    const hMessage = document.getElementById('h');
 
     let clickedImages = [];
 
-    // Example image URLs (replace with real URLs)
+    // Unique images (example URLs)
     const imageSources = [
-      'https://via.placeholder.com/100/FF0000', 
-      'https://via.placeholder.com/100/00FF00', 
-      'https://via.placeholder.com/100/0000FF', 
-      'https://via.placeholder.com/100/FFFF00', 
-      'https://via.placeholder.com/100/FF00FF'
+      'https://via.placeholder.com/100/FF0000', // img1
+      'https://via.placeholder.com/100/00FF00', // img2
+      'https://via.placeholder.com/100/0000FF', // img3
+      'https://via.placeholder.com/100/FFFF00', // img4
+      'https://via.placeholder.com/100/FF00FF'  // img5
     ];
 
     function shuffle(array) {
@@ -59,31 +58,27 @@
       // Shuffle images
       const shuffledImages = shuffle(imagesToShow);
 
-      shuffledImages.forEach((src, index) => {
+      shuffledImages.forEach((src) => {
         const img = document.createElement('img');
         img.src = src;
-        img.dataset.index = index;
+
+        // Assign class based on original source
+        const originalIndex = imageSources.indexOf(src);
+        img.classList.add(`img${originalIndex + 1}`);
+
         img.addEventListener('click', () => handleImageClick(img));
         imagesContainer.appendChild(img);
       });
     }
 
     function handleImageClick(img) {
-      // Prevent selecting the same image twice
-      if (clickedImages.includes(img)) return;
-
+      if (clickedImages.includes(img)) return; // prevent double click
       clickedImages.push(img);
       img.classList.add('selected');
 
-      if (clickedImages.length >= 1) {
-        resetBtn.style.display = 'inline-block';
-      }
-
-      if (clickedImages.length === 2) {
-        verifyBtn.style.display = 'inline-block';
-      } else {
-        verifyBtn.style.display = 'none';
-      }
+      if (clickedImages.length >= 1) resetBtn.style.display = 'inline-block';
+      if (clickedImages.length === 2) verifyBtn.style.display = 'inline-block';
+      if (clickedImages.length > 2) verifyBtn.style.display = 'none';
     }
 
     resetBtn.addEventListener('click', () => {
@@ -96,21 +91,19 @@
 
     verifyBtn.addEventListener('click', () => {
       if (clickedImages.length !== 2) return;
-
       const [img1, img2] = clickedImages;
       if (img1.src === img2.src) {
         messagePara.textContent = 'You are a human. Congratulations!';
       } else {
         messagePara.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
       }
-
       verifyBtn.style.display = 'none';
     });
 
-    // Initialize images on page load
     window.addEventListener('load', setupImages);
   </script>
 </body>
 </html>
+
 
 
