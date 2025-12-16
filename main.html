@@ -3,70 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>I'm not a robot</title>
+  <title>Robot Verification</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 40px;
-    }
-
-    #image-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    img {
-      width: 150px;
-      height: 150px;
-      border: 3px solid transparent;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    img.selected {
-      border-color: #007bff;
-    }
-
-    #reset, #verify {
-      margin-top: 20px;
-      padding: 10px 25px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
-      display: none;
-    }
-
-    #para {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #333;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+    #images-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+    img { width: 100px; height: 100px; cursor: pointer; border: 2px solid transparent; }
+    img.selected { border-color: blue; }
+    button { margin: 10px; display: none; padding: 10px 20px; }
   </style>
 </head>
 <body>
-  
-<h3 id="h"></h3>
-
-<div id="images"></div>
-
-<button id="reset">Reset</button>
-<button id="verify">Verify</button>
-
-<p id="para"></p>
+  <h3 id="h">Please click on the identical tiles to verify that you are not a robot.</h3>
+  <div id="images-container"></div>
+  <button id="reset">Reset</button>
+  <button id="verify">Verify</button>
+  <p id="para"></p>
 
   <script>
-   
+    const imagesContainer = document.getElementById('images-container');
+    const resetBtn = document.getElementById('reset');
+    const verifyBtn = document.getElementById('verify');
+    const messagePara = document.getElementById('para');
+    const hMessage = document.getElementById('h');
 
-    
+    let clickedImages = [];
+
+    // Example image URLs (replace with real URLs)
+    const imageSources = [
+      'https://via.placeholder.com/100/FF0000', 
+      'https://via.placeholder.com/100/00FF00', 
+      'https://via.placeholder.com/100/0000FF', 
+      'https://via.placeholder.com/100/FFFF00', 
+      'https://via.placeholder.com/100/FF00FF'
+    ];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function setupImages() {
+      imagesContainer.innerHTML = '';
+      messagePara.textContent = '';
+      clickedImages = [];
+      resetBtn.style.display = 'none';
+      verifyBtn.style.display = 'none';
+
+      // Pick a random image to duplicate
+      const duplicateIndex = Math.floor(Math.random() * imageSources.length);
+      const imagesToShow = [...imageSources, imageSources[duplicateIndex]];
+
+      // Shuffle images
+      const shuffledImages = shuffle(imagesToShow);
+
+      shuffledImages.forEach((src, index) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.dataset.index = index;
+        img.addEventListener('click', () => handleImageClick(img));
+        imagesContainer.appendChild(img);
+      });
+    }
+
+    function handleImageClick(img) {
+      // Prevent selecting the same image twice
+      if (clickedImages.includes(img)) return;
+
+      clickedImages.push(img);
+      img.classList.add('selected');
+
+      if (clickedImages.length >= 1) {
+        resetBtn.style.display = 'inline-block';
+      }
+
+      if (clickedImages.length === 2) {
+        verifyBtn.style.display = 'inline-block';
+      } else {
+        verifyBtn.style.display = 'none';
+      }
+    }
+
+    resetBtn.addEventListener('click', () => {
+      clickedImages.forEach(img => img.classList.remove('selected'));
+      clickedImages = [];
+      resetBtn.style.display = 'none';
+      verifyBtn.style.display = 'none';
+      messagePara.textContent = '';
+    });
+
+    verifyBtn.addEventListener('click', () => {
+      if (clickedImages.length !== 2) return;
+
+      const [img1, img2] = clickedImages;
+      if (img1.src === img2.src) {
+        messagePara.textContent = 'You are a human. Congratulations!';
+      } else {
+        messagePara.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
+      }
+
+      verifyBtn.style.display = 'none';
+    });
+
+    // Initialize images on page load
+    window.addEventListener('load', setupImages);
   </script>
 </body>
 </html>
+
 
